@@ -18,3 +18,12 @@
 
 - src: andrewrothstein.miniconda
   version: "v5.2.3"
+
+- src: https://github.com/dholt/ansible-openldap.git
+  name: dholt.openldap
+
+- src: andrewrothstein.nss-pam-ldap
+  version: "v1.0.2"
+
+- src: andrewrothstein.nss-pam-ldap-configure
+  version: "v1.0.6"
