@@ -1,0 +1,5 @@
+---
+- hosts: management
+  become: true
+  roles:
+    - dholt.openldap

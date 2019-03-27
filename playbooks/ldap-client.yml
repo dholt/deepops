@@ -1,0 +1,5 @@
+---
+- hosts: gpu-servers
+  become: true
+  roles:
+    - andrewrothstein.nss-pam-ldap-configure
