@@ -18,10 +18,10 @@
       set_fact:
         ansible_real_user: "{{ ansible_user_id }}"
 
-- include: docker.yml
-  vars:
-    docker_users:
-      - "{{ ansible_real_user }}"
+#- include: docker.yml
+#  vars:
+#    docker_users:
+#      - "{{ ansible_real_user }}"
 
 - hosts: localhost
   connection: local
@@ -51,7 +51,7 @@
       file:
         path: "{{ matchbox_extract_path | dirname }}"
         state: directory
-    - name: grab vagrant release
+    - name: grab matchbox release
       unarchive:
         src: "{{ matchbox_tarball_url }}"
         dest: "{{ matchbox_extract_path | dirname }}"

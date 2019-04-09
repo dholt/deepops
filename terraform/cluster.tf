@@ -1,51 +1,38 @@
 variable "vsphere_user" {}
 variable "vsphere_password" {}
 variable "vsphere_server" {}
+variable "vsphere_allow_unverified_ssl" {}
+variable "vsphere_dc" {}
+variable "vsphere_datastore" {}
+variable "vsphere_pool" {}
+variable "vsphere_network" {}
 
-provider "vsphere" {
-  user           = "${var.vsphere_user}"
-  password       = "${var.vsphere_password}"
+variable "compute_instance_count" {}
+variable "compute_name_prefix" {}
+variable "compute_cpus" {}
+variable "compute_mem" {}
+variable "compute_guest_id" {}
+variable "compute_disk_label" {}
+variable "compute_disk_size" {}
+
+module "vsphere" {
+  source = "./modules/vsphere"
+
+  vsphere_user = "${var.vsphere_user}"
   vsphere_server = "${var.vsphere_server}"
+  vsphere_password = "${var.vsphere_password}"
+  vsphere_allow_unverified_ssl = "${var.vsphere_allow_unverified_ssl}"
 
-  # If you have a self-signed cert
-  allow_unverified_ssl = true
-}
+  vsphere_dc = "${var.vsphere_dc}"
+  vsphere_datastore = "${var.vsphere_datastore}"
+  vsphere_pool = "${var.vsphere_pool}"
+  vsphere_network = "${var.vsphere_network}"
 
-data "vsphere_datacenter" "dc" {
-  name = "home"
-}
-
-data "vsphere_datastore" "datastore" {
-  name          = "datastore-0"
-  datacenter_id = "${data.vsphere_datacenter.dc.id}"
-}
-
-data "vsphere_resource_pool" "pool" {
-  name          = "cluster1/Resources"
-  datacenter_id = "${data.vsphere_datacenter.dc.id}"
-}
-
-data "vsphere_network" "network" {
-  name          = "VM Network"
-  datacenter_id = "${data.vsphere_datacenter.dc.id}"
-}
-
-resource "vsphere_virtual_machine" "vm" {
-  name             = "terraform-test"
-  resource_pool_id = "${data.vsphere_resource_pool.pool.id}"
-  datastore_id     = "${data.vsphere_datastore.datastore.id}"
-  wait_for_guest_net_timeout = 0
-
-  num_cpus = 2
-  memory   = 4096
-  guest_id = "other3xLinux64Guest"
-
-  network_interface {
-    network_id = "${data.vsphere_network.network.id}"
-  }
-
-  disk {
-    label = "disk0"
-    size  = 20
-  }
+  compute_instance_count = "${var.compute_instance_count}"
+  compute_name_prefix = "${var.compute_name_prefix}"
+  compute_cpus = "${var.compute_cpus}"
+  compute_mem = "${var.compute_mem}"
+  compute_guest_id = "${var.compute_guest_id}"
+  compute_disk_label = "${var.compute_disk_label}"
+  compute_disk_size = "${var.compute_disk_size}"
 }
