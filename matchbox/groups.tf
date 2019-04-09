@@ -2,6 +2,8 @@
 resource "matchbox_group" "default" {
   name    = "default"
   profile = "${matchbox_profile.coreos-install.name}"
+  #profile = "${matchbox_profile.ubuntu-install.name}"
+  #profile = "${matchbox_profile.ubuntu-cloud.name}"
 
   # no selector means all machines can be matched
   metadata {

@@ -18,6 +18,42 @@ resource "matchbox_profile" "coreos-install" {
   container_linux_config = "${file("./cl/coreos-install.yaml.tmpl")}"
 }
 
+// Create a Ubuntu-install profile
+resource "matchbox_profile" "ubuntu-install" {
+  name   = "ubuntu-install"
+  kernel = "http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/ubuntu-installer/amd64/linux"
+
+  initrd = [
+    "http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/ubuntu-installer/amd64/initrd.gz",
+  ]
+
+  args = [
+    "auto=true",
+    "priority=critical",
+    "preseed/url=https://raw.githubusercontent.com/NVIDIA/deepops/master/containers/pxe/preseed",
+  ]
+
+  container_linux_config = "${file("./cl/simple.yaml.tmpl")}"
+
+}
+
+// Create a Ubuntu-cloud profile
+resource "matchbox_profile" "ubuntu-cloud" {
+  name   = "ubuntu-cloud"
+  kernel = "http://cloud-images.ubuntu.com/releases/bionic/release/unpacked/ubuntu-18.04-server-cloudimg-amd64-vmlinuz-generic"
+
+  initrd = [
+    "http://cloud-images.ubuntu.com/releases/bionic/release/unpacked/ubuntu-18.04-server-cloudimg-amd64-initrd-generic",
+  ]
+
+  args = [
+    "root=http://cloud-images.ubuntu.com/releases/bionic/release/ubuntu-18.04-server-cloudimg-amd64.vmdk",
+  ]
+
+  container_linux_config = "${file("./cl/simple.yaml.tmpl")}"
+
+}
+
 // Create a simple profile which just sets an SSH authorized_key
 resource "matchbox_profile" "simple" {
   name                   = "simple"
