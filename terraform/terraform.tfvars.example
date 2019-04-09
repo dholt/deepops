@@ -1,0 +1,17 @@
+vsphere_user = "user"
+vsphere_server = "10.0.0.1"
+vsphere_password = "password"
+vsphere_allow_unverified_ssl = true
+
+vsphere_dc = "example"
+vsphere_datastore = "datastore"
+vsphere_pool = "cluster1/Resources"
+vsphere_network = "VM Network"
+
+compute_instance_count = 3
+compute_name_prefix = "node-"
+compute_cpus = 2
+compute_mem = 4096
+compute_guest_id = "other3xLinux64Guest"
+compute_disk_label = "disk0"
+compute_disk_size = 20
