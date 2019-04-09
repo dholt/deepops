@@ -1,0 +1,187 @@
+---
+# Matchbox PXE service playbook
+
+# Install python required for Ansible
+- include: bootstrap-python.yml
+
+# Set up passwordless sudo and SSH keys if needed
+- include: bootstrap-ssh.yml
+- include: bootstrap-sudo.yml
+
+# Set hostname based on inventory file
+- include: hosts.yml
+
+- hosts: all
+  become: false
+  tasks:
+    - name: register non-sudo user
+      set_fact:
+        ansible_real_user: "{{ ansible_user_id }}"
+
+- include: docker.yml
+  vars:
+    docker_users:
+      - "{{ ansible_real_user }}"
+
+- hosts: localhost
+  connection: local
+  vars:
+    matchbox_dir: "~/.matchbox"
+  tags:
+    - matchbox
+  tasks:
+    - name: create local matchbox directory
+      file:
+        path: "{{ matchbox_dir }}"
+        state: directory
+
+- hosts: all
+  become: true
+  vars:
+    matchbox_version: "v0.7.1"
+    matchbox_tarball_url: "https://github.com/coreos/matchbox/releases/download/{{ matchbox_version }}/matchbox-{{ matchbox_version }}-linux-amd64.tar.gz"
+    matchbox_extract_path: "/opt/matchbox-{{ matchbox_version }}-linux-amd64"
+    matchbox_lib_dir: /var/lib/matchbox
+    matchbox_etc_dir: /etc/matchbox
+    matchbox_local_dir: "~/.matchbox"   # needs to match last task to create this directory
+  tags:
+    - matchbox
+  tasks:
+    - name: create extract directory
+      file:
+        path: "{{ matchbox_extract_path | dirname }}"
+        state: directory
+    - name: grab vagrant release
+      unarchive:
+        src: "{{ matchbox_tarball_url }}"
+        dest: "{{ matchbox_extract_path | dirname }}"
+        remote_src: yes
+        creates: "{{ matchbox_extract_path }}"
+    - name: copy matchbox binary
+      copy:
+        src: "{{ matchbox_extract_path }}/matchbox"
+        dest: "/usr/local/bin/matchbox"
+        remote_src: yes
+        mode: 0755
+        owner: root
+        group: root
+    - name: add matchbox user
+      user:
+        name: matchbox
+    - name: create matchbox directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0755
+        owner: matchbox
+        group: matchbox
+      with_items:
+        - "{{ matchbox_etc_dir }}"
+        - "{{ matchbox_lib_dir }}/assets"
+    - name: copy systemd unit file
+      copy:
+        src: "{{ matchbox_extract_path }}/contrib/systemd/matchbox-local.service"
+        dest: "/etc/systemd/system/matchbox.service"
+        remote_src: yes
+        mode: 0755
+        owner: root
+        group: root
+    - name: configure matchbox service
+      blockinfile:
+        path: "/etc/systemd/system/matchbox.service"
+        block: |
+          # /etc/systemd/system/matchbox.service.d/override.conf
+          [Service]
+          Environment="MATCHBOX_ADDRESS=0.0.0.0:8080"
+          Environment="MATCHBOX_RPC_ADDRESS=0.0.0.0:8081"
+          Environment="MATCHBOX_LOG_LEVEL=debug"
+    - name: generate certs
+      command: ./cert-gen
+      args:
+        chdir: "{{ matchbox_extract_path }}/scripts/tls"
+        creates: "{{ matchbox_extract_path }}/scripts/tls/ca.crt"
+      environment:
+        SAN: "DNS.1:{{ ansible_fqdn }}"
+    - name: copy admin certs
+      copy:
+        src: "{{ matchbox_extract_path }}/scripts/tls/{{ item }}"
+        dest: "{{ matchbox_etc_dir }}/{{ item }}"
+        remote_src: yes
+      with_items:
+        - ca.crt
+        - server.crt
+        - server.key
+    - name: make client cert directory
+      file:
+        path: "{{ ansible_user_dir }}/.matchbox"
+        state: directory
+        mode: 0755
+        owner: matchbox
+        group: matchbox
+    - name: copy client certs
+      copy:
+        src: "{{ matchbox_extract_path }}/scripts/tls/{{ item }}"
+        dest: "{{ ansible_user_dir }}/.matchbox/{{ item }}"
+        remote_src: yes
+      with_items:
+        - ca.crt
+        - client.crt
+        - client.key
+    - name: manage matchbox service
+      systemd:
+        name: matchbox
+        state: started
+        enabled: yes
+        daemon_reload: yes
+    - name: fetch client certs
+      fetch:
+        src: "{{ matchbox_extract_path }}/scripts/tls/{{ item }}"
+        dest: "{{ matchbox_local_dir }}/{{ item }}"
+        flat: yes
+      with_items:
+        - ca.crt
+        - client.crt
+        - client.key
+
+- hosts: all
+  become: true
+  vars:
+    undionly_pxe_url: http://boot.ipxe.org/undionly.kpxe
+  tags:
+    - dnsmasq
+  tasks:
+    - name: install dnsmasq
+      package:
+        name: dnsmasq
+        state: present
+    - name: create tftp directory
+      file:
+        path: /var/lib/tftpboot
+        state: directory
+    - name: get unidonly.kpxe file
+      get_url:
+        url: "{{ undionly_pxe_url }}"
+        dest: /var/lib/tftpboot/undionly.kpxe
+    - name: configure dnsmasq service
+      blockinfile:
+        path: "/etc/dnsmasq.conf"
+        block: |
+          dhcp-range=192.168.1.1,proxy,255.255.255.0
+          enable-tftp
+          tftp-root=/var/lib/tftpboot
+          # if request comes from older PXE ROM, chainload to iPXE (via TFTP)
+          pxe-service=tag:#ipxe,x86PC,"PXE chainload to iPXE",undionly.kpxe
+          # if request comes from iPXE user class, set tag "ipxe"
+          dhcp-userclass=set:ipxe,iPXE
+          # point ipxe tagged requests to the matchbox iPXE boot script (via HTTP)
+          pxe-service=tag:ipxe,x86PC,"iPXE",http://{{ ansible_fqdn }}:8080/boot.ipxe
+          # verbose
+          log-queries
+          log-dhcp
+      register: dnsmasq_config
+    - name: manage dnsmasq service
+      systemd:
+        name: dnsmasq
+        state: restarted
+        enabled: yes
+      when: dnsmasq_config.changed
