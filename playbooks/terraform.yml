@@ -1,0 +1,37 @@
+---
+- hosts: all
+  become: false
+  tasks:
+    - name: register ssh user facts
+      set_fact:
+        home_dir: "{{ ansible_user_dir }}"
+        user: "{{ ansible_user_id }}"
+
+- hosts: all
+  become: true
+  vars:
+    terraform_release_url: https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip
+    terraform_extract_path: /usr/local/bin
+    terraform_provider_libvirt_release_url: https://github.com/dmacvicar/terraform-provider-libvirt/releases/download/v0.5.1/terraform-provider-libvirt-0.5.1.Ubuntu_18.04.amd64.tar.gz
+  tasks:
+    - name: install qemu-utils package
+      package:
+        name: qemu-utils
+        state: present
+    - name: grab terraform release
+      unarchive:
+        src: "{{ terraform_release_url }}"
+        dest: "{{ terraform_extract_path }}"
+        remote_src: yes
+        creates: "{{ terraform_extract_path }}/terraform"
+    - name: create terraform plugin directory
+      file:
+        path: "{{ home_dir }}/.terraform.d/plugins"
+        state: directory
+        owner: "{{ ansible_user_id }}"
+    - name: grab terraform-provider-libvirt
+      unarchive:
+        src: "{{ terraform_provider_libvirt_release_url }}"
+        dest: "{{ home_dir }}/.terraform.d/plugins"
+        remote_src: yes
+        creates: "{{ home_dir }}/.terraform.d/plugins/terraform-provider-libvirt"
