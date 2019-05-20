@@ -6,6 +6,8 @@ variable "vsphere_dc" {}
 variable "vsphere_datastore" {}
 variable "vsphere_pool" {}
 variable "vsphere_network" {}
+variable "vsphere_template_name" {}
+#variable "vsphere_datastore_cluster" {}
 
 variable "compute_instance_count" {}
 variable "compute_name_prefix" {}
@@ -14,3 +16,4 @@ variable "compute_mem" {}
 variable "compute_guest_id" {}
 variable "compute_disk_label" {}
 variable "compute_disk_size" {}
+variable "compute_instance_folder" {}
