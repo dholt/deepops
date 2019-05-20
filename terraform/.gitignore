@@ -1,4 +1,6 @@
 terraform.tfvars
 .terraform
 *.tfstate*
+*.log
+*.tfstate
 assets
