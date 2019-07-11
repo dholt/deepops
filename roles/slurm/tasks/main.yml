@@ -39,7 +39,7 @@
     name: "{{ slurm_pkg_url }}/{{ slurm_pkg_tag }}/{{ item }}"
     state: present
   with_items:
-    - "{{ slurm_rhel_deb }}"
+    - "{{ slurm_rhel_rpm }}"
   notify:
     - restart slurmd
     - restart slurmdbd
