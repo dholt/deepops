@@ -15,6 +15,8 @@ kubelet_flexvolumes_plugins_dir: /usr/libexec/kubernetes/kubelet-plugins/volume/
 # NVIDIA Docker Configuration
 # Setting reference: https://docs.nvidia.com/deeplearning/dgx/user-guide/index.html
 docker_daemon_json:
+  insecure-registries:
+    - registry.local
   bip: 192.168.99.1/24
   default-shm-size: 1G
   default-ulimits:

@@ -2,6 +2,9 @@
 # Install packages required for Ansible Helm module
 - hosts: kube-master
   become: true
+  vars:
+    deepops_dir: /opt/deepops
+    deepops_venv: '{{ deepops_dir }}/venv'
   tasks:
     - name: Enable EPEL repo
       package:
@@ -21,12 +24,37 @@
           - pyhelm
           - grpcio
         state: present
+    - name: install virtualenv
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - "virtualenv"
+        - "python-setuptools"
+      when: ansible_distribution == 'Ubuntu'
+    - name: create location for python virtual env
+      file:
+        path: "{{ deepops_dir }}"
+        state: directory
+      when: ansible_distribution == 'Ubuntu'
+    - name: install openshift python client for k8s_raw module
+      pip:
+        name: openshift
+        virtualenv: "{{ deepops_venv }}"
+      when: ansible_distribution == 'Ubuntu'
+    - name: install openshift python client for k8s_raw module
+      yum:
+        name: python2-openshift
+      when: ansible_os_family == 'RedHat'
   tags:
     - always
 
 # Register Tiller service info
 - hosts: kube-master
   become: true
+  vars:
+    deepops_dir: /opt/deepops
+    deepops_venv: '{{ deepops_dir }}/venv'
   tasks:
     - name: Get tiller service info
       k8s_facts:
@@ -35,6 +63,8 @@
         name: tiller-deploy
         namespace: kube-system
       register: tiller_service
+      environment:
+        PYTHONHOME: '{{ deepops_venv }}'
   tags:
     - always
 
@@ -60,6 +90,7 @@
     - name: Set registry hostname in /etc/hosts
       lineinfile:
         path: /etc/hosts
-        line: "{{ hostvars[groups['kube-master'][0]]['ansible_host'] }} {{ container_registry_hostname }}"
+        line: "{{ hostvars[groups['kube-master'][0]]['ansible_default_ipv4']['address'] }} {{ container_registry_hostname }}"
   tags:
     - container-registry
+    - hosts
