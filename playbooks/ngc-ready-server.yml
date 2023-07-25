@@ -5,6 +5,8 @@
 - include: bootstrap/bootstrap-sudo.yml
 
 - include: container/docker.yml
+  vars:
+    dns_late: false
 - include: nvidia-software/nvidia-driver.yml
 - include: container/nvidia-docker.yml
 
