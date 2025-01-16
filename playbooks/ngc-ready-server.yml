@@ -1,14 +1,14 @@
 ---
 
-- include: bootstrap/bootstrap-python.yml
-- include: bootstrap/bootstrap-ssh.yml
-- include: bootstrap/bootstrap-sudo.yml
+- import_playbook: bootstrap/bootstrap-python.yml
+- import_playbook: bootstrap/bootstrap-ssh.yml
+- import_playbook: bootstrap/bootstrap-sudo.yml
 
-- include: container/docker.yml
-- include: nvidia-software/nvidia-driver.yml
-- include: container/nvidia-docker.yml
+- import_playbook: container/docker.yml
+- import_playbook: nvidia-software/nvidia-driver.yml
+- import_playbook: container/nvidia-docker.yml
 
-- include: nvidia-software/nvidia-dcgm.yml
+- import_playbook: nvidia-software/nvidia-dcgm.yml
   when: install_dcgm|default(false)
 
 - hosts: all
