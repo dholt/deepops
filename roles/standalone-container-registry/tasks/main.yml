@@ -35,15 +35,12 @@
     package:
       name: python-docker
 
-- name: Ensure Python 3 dependencies are installed via pip
+- name: Ensure Python 3 dependencies are installed via OS packages
   when: ansible_python.version.major==3
   block:
-  - name: install pip
+  - name: install python3-docker
     package:
-      name: python3-pip
-  - name: install docker
-    pip:
-      name: docker
+      name: python3-docker
 
 - name: run registry docker container
   docker_container:

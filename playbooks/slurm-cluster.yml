@@ -59,7 +59,7 @@
 - name: Set up NFS filesystem | Install nfs-server
   import_playbook: generic/nfs-server.yml
   vars:
-    hostlist: "{{ nfs_server_group | default('slurm-nfs[0]') }}"
+    hostlist: "{{ nfs_server_group | default((groups['slurm-nfs'] | length > 0) | ternary('slurm-nfs[0]', 'slurm-master[0]')) }}"
   when: slurm_enable_nfs_server
 
 - name: Set up NFS filesystem | Install nfs-client
