@@ -1,7 +1,7 @@
 ---
 - include: ../nvidia-software/nvidia-driver.yml
 
-- include: nvidia-docker.yml
+- include: nvidia-ctk.yml
   vars:
     nvidia_docker_skip_docker_reload: true
 

@@ -6,7 +6,7 @@
 
 - import_playbook: container/docker.yml
 - import_playbook: nvidia-software/nvidia-driver.yml
-- import_playbook: container/nvidia-docker.yml
+- import_playbook: container/nvidia-ctk.yml
 
 - import_playbook: nvidia-software/nvidia-dcgm.yml
   when: install_dcgm|default(false)
