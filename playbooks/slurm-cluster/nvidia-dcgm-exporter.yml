@@ -6,7 +6,7 @@
   import_playbook: ../nvidia-software/nvidia-driver.yml
 
 - name: Install NVIDIA container runtime
-  import_playbook: ../container/nvidia-docker.yml
+  import_playbook: ../container/nvidia-ctk.yml
 
 - hosts:  "{{ hostlist | default('all') }}"
   become: yes

@@ -1,0 +1,26 @@
+---
+- hosts: "{{ hostlist | default('all') }}"
+  become: true
+  tags:
+  - nvidia
+  - nvidia_docker
+  - nvidia_ctk
+  tasks:
+    - name: install custom facts module
+      include_role:
+        name: facts
+      when: docker_install | default('yes')
+
+    - name: remove docker overrides, specifically to deal with conflicting options from DGX OS
+      file:
+        path: /etc/systemd/system/docker.service.d/docker-override.conf
+        state: absent
+      when: docker_install | default('yes')
+
+    - name: install nvidia-ctk
+      include_role:
+        name: nvidia-ctk
+      when:
+        - ansible_local['gpus']['count'] and (ansible_distribution == "Ubuntu" or ansible_os_family == "RedHat")
+        - docker_install | default('yes')
+  environment: "{{ proxy_env if proxy_env is defined else {} }}"
