@@ -1,0 +1,13 @@
+# NVIDIA Container Toolkit repository configuration
+nvidia_docker_repo:
+  base_url: "https://nvidia.github.io/libnvidia-container"
+  gpg_key: "{{ nvidia_docker_repo.base_url }}/gpgkey"
+  deb_list: "{{ nvidia_docker_repo.base_url }}/stable/deb/nvidia-container-toolkit.list"
+  rpm_repo: "{{ nvidia_docker_repo.base_url }}/stable/rpm/nvidia-container-toolkit.repo"
+
+# Docker service configuration
+nvidia_docker_skip_docker_reload: false
+
+# Replacing the reload var with the restart var, using this by default for
+# backward compatibility
+nvidia_docker_skip_docker_restart: "{{ nvidia_docker_skip_docker_reload }}"

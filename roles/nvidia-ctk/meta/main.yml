@@ -1,0 +1,25 @@
+galaxy_info:
+  role_name: nvidia_ctk
+  author: Douglas Holt
+  company: NVIDIA
+  description: Install libnvidia-container and nvidia-container-toolkit
+  license: 3-Clause BSD
+  min_ansible_version: "2.0"
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - 'focal'
+        - 'jammy'
+        - 'noble'
+    - name: EL
+      versions:
+        - '8'
+        - '9'
+
+  galaxy_tags:
+    - 'nvidia'
+    - 'docker'
+    - 'libnvidia-container'
+    - 'nvidia-container-toolkit'
+    - 'nvidia-docker'
