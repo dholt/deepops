@@ -176,7 +176,7 @@
         gpu_operator_preinstalled_nvidia_software|default(true)
 
 - name: Install NVIDIA container runtime on GPU servers
-  import_playbook: container/nvidia-docker.yml
+  import_playbook: container/nvidia-ctk.yml
   vars:
     hostlist: "k8s-cluster"
   tags:
